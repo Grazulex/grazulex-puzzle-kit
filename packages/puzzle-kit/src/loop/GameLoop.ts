@@ -4,10 +4,12 @@ type GameLoopOptions =
 
 export class GameLoop {
   private options: GameLoopOptions
-  private running = false
-  private paused = false
-  private intervalId: ReturnType<typeof setInterval> | null = null
-  private lastTime = 0
+  private _running = false
+  private _paused = false
+  private _rafId = 0
+  private _lastTime = -1
+  private _accumulator = 0
+  private readonly _FIXED_DT: number
 
   onUpdate: ((dt: number) => void) | null = null
   onRender: ((alpha: number) => void) | null = null
@@ -15,47 +17,67 @@ export class GameLoop {
 
   constructor(options: GameLoopOptions) {
     this.options = options
+    this._FIXED_DT = options.mode === 'realtime' ? 1 / (options.ups ?? 60) : 0
   }
 
   start(): void {
-    this.running = true
-    this.paused = false
+    this._running = true
+    this._paused = false
 
     if (this.options.mode === 'realtime') {
-      const ups = this.options.ups ?? 60
-      const step = 1000 / ups
-      this.lastTime = Date.now()
-      this.intervalId = setInterval(() => {
-        if (this.paused) return
-        const now = Date.now()
-        const dt = (now - this.lastTime) / 1000
-        this.lastTime = now
-        this.onUpdate?.(dt)
-        this.onRender?.(1)
-      }, step)
+      this._lastTime = -1
+      this._accumulator = 0
+      this._rafId = requestAnimationFrame(this._tick)
     }
   }
 
+  private _tick = (timestamp: number): void => {
+    if (!this._running || this._paused) return
+
+    if (this._lastTime === -1) {
+      this._lastTime = timestamp
+      this._rafId = requestAnimationFrame(this._tick)
+      return
+    }
+
+    const delta = (timestamp - this._lastTime) / 1000
+    this._lastTime = timestamp
+    this._accumulator += delta
+
+    while (this._accumulator >= this._FIXED_DT) {
+      this.onUpdate?.(this._FIXED_DT)
+      this._accumulator -= this._FIXED_DT
+    }
+
+    this.onRender?.(this._accumulator / this._FIXED_DT)
+    this._rafId = requestAnimationFrame(this._tick)
+  }
+
   stop(): void {
-    this.running = false
-    if (this.intervalId !== null) {
-      clearInterval(this.intervalId)
-      this.intervalId = null
+    this._running = false
+    if (this._rafId !== 0) {
+      cancelAnimationFrame(this._rafId)
+      this._rafId = 0
     }
   }
 
   pause(): void {
-    this.paused = true
+    this._paused = true
+    if (this._rafId !== 0) {
+      cancelAnimationFrame(this._rafId)
+      this._rafId = 0
+    }
   }
 
   resume(): void {
-    if (!this.running) return
-    this.paused = false
-    this.lastTime = Date.now()
+    if (!this._running) return
+    this._paused = false
+    this._lastTime = -1
+    this._rafId = requestAnimationFrame(this._tick)
   }
 
   submitAction(action: Record<string, unknown>): void {
-    if (!this.running) return
+    if (!this._running) return
     this.onTurn?.(action)
   }
 }
