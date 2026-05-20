@@ -1,12 +1,21 @@
-import { EventBus, AudioManager, SaveSystem, SceneManager, GameLoop } from '@grazulex/puzzle-kit'
+import { EventBus, AudioManager, {{#if save}}SaveSystem, {{/if}}SceneManager, GameLoop } from '@grazulex/puzzle-kit'
 import { audioConfig } from './config/audio'
 import { MenuScene } from './scenes/MenuScene'
 import { GameScene } from './scenes/GameScene'
+{{#if save}}
 import type { GameState } from './types'
+{{/if}}
 
-const bus = new EventBus()
+type GameEvents = {
+  'scene:goto': string
+  'scene:back': void
+}
+
+const bus = new EventBus<GameEvents>()
 const audio = new AudioManager({ bus, config: audioConfig })
+{{#if save}}
 const save = new SaveSystem<GameState>({ version: 1, bus })
+{{/if}}
 const scenes = new SceneManager({ bus, scenes: {} })
 const loop = new GameLoop({ mode: '{{mode}}' })
 
@@ -23,5 +32,5 @@ scenes.goto('menu')
 loop.start()
 
 if (import.meta.env.DEV) {
-  Object.assign(window, { bus, audio, save, scenes, loop })
+  Object.assign(window, { bus, audio, {{#if save}}save, {{/if}}scenes, loop })
 }

@@ -43,6 +43,7 @@ mkdirSync(targetDir, { recursive: true })
 scaffold(targetDir, {
   name: result.name as string,
   mode: result.mode as string,
+  save: String(result.save as boolean),
 })
 
 console.log()
