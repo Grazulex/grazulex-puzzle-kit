@@ -34,11 +34,23 @@ Pub/sub typé. Sert de lien entre tous les modules sans couplage direct.
 ```ts
 import { EventBus } from '@grazulex/puzzle-kit'
 
+// Sans type — fonctionne comme avant
 const bus = new EventBus()
-
 bus.on('score:updated', (score: number) => console.log(score))
 bus.emit('score:updated', 42)
 bus.off('score:updated', handler)
+
+// Avec map d'événements — typos détectées à la compilation
+type GameEvents = {
+  'score:updated': number
+  'scene:goto': string
+  'game:over': undefined
+}
+
+const bus = new EventBus<GameEvents>()
+bus.emit('score:updated', 42)    // ✅
+bus.emit('scroe:updated', 42)    // ❌ TypeScript error — typo détectée
+bus.emit('scene:goto', 'game')   // ✅
 ```
 
 ---
@@ -125,7 +137,7 @@ save.onVersionMismatch = (oldVersion, currentVersion, data) => {
 
 ### AudioManager
 
-Wrapper Howler.js avec layers SFX/musique indépendants et persistance du volume.
+Wrapper Howler.js avec layers SFX/musique indépendants et persistance des volumes.
 
 ```ts
 import { AudioManager } from '@grazulex/puzzle-kit'
@@ -142,17 +154,25 @@ const audioConfig: AudioConfig = {
 const audio = new AudioManager({ bus, config: audioConfig })
 
 // Musique (loop par défaut)
-audio.playMusic('main-theme', { loop: true, volume: 0.8 })
+audio.playMusic('main-theme', { loop: true })
 audio.fadeOut('main-theme', 1000)
 
 // Effets sonores
 audio.playSFX('click')
 
-// Volume (persiste en localStorage)
-audio.setVolume(0.5)
-audio.getVolume()     // → 0.5
+// Volumes indépendants (persistent en localStorage)
+audio.setMasterVolume(0.7)   // multiplie tout (défaut: 1.0)
+audio.getMasterVolume()      // → 0.7
+
+audio.setMusicVolume(0.8)    // pour les sons type 'music' (défaut: 0.8)
+audio.getMusicVolume()       // → 0.8
+
+audio.setSFXVolume(0.5)      // pour les sons type 'sfx' (défaut: 1.0)
+audio.getSFXVolume()         // → 0.5
+
+// Volume effectif = master × typeVolume × (muted ? 0 : 1)
 audio.toggleMute()
-audio.isMuted()       // → true
+audio.isMuted()              // → true
 ```
 
 ---
