@@ -1,20 +1,21 @@
+type EventMap = Record<string, unknown>
 type Handler<T = unknown> = (data: T) => void
 
-export class EventBus {
+export class EventBus<T extends EventMap = EventMap> {
   private listeners = new Map<string, Set<Handler>>()
 
-  on<T>(event: string, handler: Handler<T>): void {
+  on<K extends keyof T & string>(event: K, handler: (data: T[K]) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, new Set())
     }
     this.listeners.get(event)!.add(handler as Handler)
   }
 
-  off<T>(event: string, handler: Handler<T>): void {
+  off<K extends keyof T & string>(event: K, handler: (data: T[K]) => void): void {
     this.listeners.get(event)?.delete(handler as Handler)
   }
 
-  emit<T>(event: string, data?: T): void {
+  emit<K extends keyof T & string>(event: K, data?: T[K]): void {
     this.listeners.get(event)?.forEach(h => h(data))
   }
 }

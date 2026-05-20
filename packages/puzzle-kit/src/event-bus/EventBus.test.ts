@@ -45,4 +45,26 @@ describe('EventBus', () => {
     bus.emit('test')
     expect(handler).toHaveBeenCalledWith(undefined)
   })
+
+  it('EventBus<T> — handler reçoit le bon type au runtime', () => {
+    type Events = { 'score:updated': number; 'game:over': undefined }
+    const bus = new EventBus<Events>()
+    const handler = vi.fn()
+    bus.on('score:updated', handler)
+    bus.emit('score:updated', 99)
+    expect(handler).toHaveBeenCalledWith(99)
+  })
+
+  it('EventBus<T> — plusieurs événements typés indépendants', () => {
+    type Events = { 'a': string; 'b': number }
+    const bus = new EventBus<Events>()
+    const ha = vi.fn()
+    const hb = vi.fn()
+    bus.on('a', ha)
+    bus.on('b', hb)
+    bus.emit('a', 'hello')
+    bus.emit('b', 42)
+    expect(ha).toHaveBeenCalledWith('hello')
+    expect(hb).toHaveBeenCalledWith(42)
+  })
 })
