@@ -1,0 +1,12 @@
+{
+  "name": "grazulex-puzzle-kit-monorepo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "dev": "turbo run dev --parallel"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.0"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "create-grazulex-game",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "create-grazulex-game": "./dist/index.js"
+  },
+  "files": ["dist", "templates"],
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "tsup": "^8.3.0"
+  },
+  "dependencies": {
+    "prompts": "^2.4.2",
+    "picocolors": "^1.1.0"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "dev": "tsup src/index.ts --format esm --watch"
+  }
+}

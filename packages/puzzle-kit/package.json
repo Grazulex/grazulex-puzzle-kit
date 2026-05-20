@@ -1,0 +1,55 @@
+{
+  "name": "@grazulex/puzzle-kit",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    },
+    "./audio": {
+      "import": "./dist/audio/index.js",
+      "require": "./dist/audio/index.cjs",
+      "types": "./dist/audio/index.d.ts"
+    },
+    "./save": {
+      "import": "./dist/save/index.js",
+      "require": "./dist/save/index.cjs",
+      "types": "./dist/save/index.d.ts"
+    },
+    "./scene": {
+      "import": "./dist/scene/index.js",
+      "require": "./dist/scene/index.cjs",
+      "types": "./dist/scene/index.d.ts"
+    },
+    "./loop": {
+      "import": "./dist/loop/index.js",
+      "require": "./dist/loop/index.cjs",
+      "types": "./dist/loop/index.d.ts"
+    },
+    "./event-bus": {
+      "import": "./dist/event-bus/index.js",
+      "require": "./dist/event-bus/index.cjs",
+      "types": "./dist/event-bus/index.d.ts"
+    }
+  },
+  "peerDependencies": {
+    "howler": "^2.2.0"
+  },
+  "devDependencies": {
+    "@types/howler": "^2.2.11",
+    "howler": "^2.2.4",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0",
+    "vitest": "^2.1.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "dev": "tsup --watch"
+  }
+}
