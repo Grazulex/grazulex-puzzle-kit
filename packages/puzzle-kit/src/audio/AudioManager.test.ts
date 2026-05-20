@@ -20,9 +20,8 @@ const config = {
   },
 }
 
-// Mock localStorage (same pattern as SaveSystem.test.ts)
 const createLocalStorageMock = () => {
-  const store: { [key: string]: string } = {}
+  const store: Record<string, string> = {}
   return {
     getItem: (key: string) => store[key] ?? null,
     setItem: (key: string, value: string) => { store[key] = value.toString() },
@@ -70,18 +69,39 @@ describe('AudioManager', () => {
     expect(audio.isMuted()).toBe(false)
   })
 
-  it('setVolume() persiste en localStorage', async () => {
+  it('setMasterVolume() persiste en localStorage', async () => {
     const { AudioManager } = await import('./AudioManager')
     const audio = new AudioManager({ bus: new EventBus(), config })
-    audio.setVolume(0.5)
-    expect(localStorage.getItem('grazulex-audio-volume')).toBe('0.5')
+    audio.setMasterVolume(0.5)
+    expect(localStorage.getItem('grazulex-master-volume')).toBe('0.5')
+    expect(audio.getMasterVolume()).toBe(0.5)
   })
 
-  it('restaure le volume depuis localStorage au démarrage', async () => {
-    localStorage.setItem('grazulex-audio-volume', '0.3')
+  it('setMusicVolume() persiste en localStorage', async () => {
     const { AudioManager } = await import('./AudioManager')
     const audio = new AudioManager({ bus: new EventBus(), config })
-    expect(audio.getVolume()).toBe(0.3)
+    audio.setMusicVolume(0.6)
+    expect(localStorage.getItem('grazulex-music-volume')).toBe('0.6')
+    expect(audio.getMusicVolume()).toBe(0.6)
+  })
+
+  it('setSFXVolume() persiste en localStorage', async () => {
+    const { AudioManager } = await import('./AudioManager')
+    const audio = new AudioManager({ bus: new EventBus(), config })
+    audio.setSFXVolume(0.3)
+    expect(localStorage.getItem('grazulex-sfx-volume')).toBe('0.3')
+    expect(audio.getSFXVolume()).toBe(0.3)
+  })
+
+  it('restaure les 3 volumes depuis localStorage au démarrage', async () => {
+    localStorage.setItem('grazulex-master-volume', '0.7')
+    localStorage.setItem('grazulex-music-volume', '0.4')
+    localStorage.setItem('grazulex-sfx-volume', '0.9')
+    const { AudioManager } = await import('./AudioManager')
+    const audio = new AudioManager({ bus: new EventBus(), config })
+    expect(audio.getMasterVolume()).toBe(0.7)
+    expect(audio.getMusicVolume()).toBe(0.4)
+    expect(audio.getSFXVolume()).toBe(0.9)
   })
 
   it('lance une erreur si le son n\'existe pas', async () => {
