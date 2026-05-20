@@ -25,14 +25,14 @@ export class SaveSystem<T> {
 
   snapshot(state: T): void {
     const envelope: SaveEnvelope<T> = { version: this.version, data: state }
-    const store = (globalThis as any).localStorage
+    const store = localStorage
     if (store) {
       store.setItem(this.key, JSON.stringify(envelope))
     }
   }
 
   restore(): T | null {
-    const store = (globalThis as any).localStorage
+    const store = localStorage
     if (!store) return null
 
     const raw = store.getItem(this.key)
@@ -54,7 +54,7 @@ export class SaveSystem<T> {
   }
 
   clear(): void {
-    const store = (globalThis as any).localStorage
+    const store = localStorage
     if (store) {
       store.removeItem(this.key)
     }
