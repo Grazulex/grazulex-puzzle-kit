@@ -130,4 +130,15 @@ describe('AudioManager', () => {
     const howlArgs = (Howl as any).mock.calls[0][0]
     expect(howlArgs.volume).toBeCloseTo(0.4) // 0.5 × 0.8
   })
+
+  it('utilise les valeurs par défaut si localStorage contient une valeur invalide', async () => {
+    localStorage.setItem('grazulex-master-volume', 'corrupted')
+    localStorage.setItem('grazulex-music-volume', 'NaN')
+    localStorage.setItem('grazulex-sfx-volume', 'undefined')
+    const { AudioManager } = await import('./AudioManager')
+    const audio = new AudioManager({ bus: new EventBus(), config })
+    expect(audio.getMasterVolume()).toBe(1)
+    expect(audio.getMusicVolume()).toBe(0.8)
+    expect(audio.getSFXVolume()).toBe(1)
+  })
 })

@@ -8,7 +8,7 @@ import type { GameState } from './types'
 
 type GameEvents = {
   'scene:goto': string
-  'scene:back': void
+  'scene:back': undefined
 }
 
 const bus = new EventBus<GameEvents>()

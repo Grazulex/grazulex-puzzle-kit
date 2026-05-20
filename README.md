@@ -39,8 +39,11 @@ const bus = new EventBus()
 bus.on('score:updated', (score: number) => console.log(score))
 bus.emit('score:updated', 42)
 bus.off('score:updated', handler)
+```
 
-// Avec map d'événements — typos détectées à la compilation
+Avec un map d'événements, les typos sont détectées à la compilation :
+
+```ts
 type GameEvents = {
   'score:updated': number
   'scene:goto': string

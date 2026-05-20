@@ -10,6 +10,11 @@ const MUSIC_VOLUME_KEY = 'grazulex-music-volume'
 const SFX_VOLUME_KEY = 'grazulex-sfx-volume'
 const MUTE_KEY = 'grazulex-audio-muted'
 
+function clampVolume(raw: string | null, fallback: number): number {
+  const n = parseFloat(raw ?? '')
+  return isNaN(n) ? fallback : Math.max(0, Math.min(1, n))
+}
+
 export class AudioManager {
   private bus: EventBus
   private config: AudioConfig
@@ -22,9 +27,9 @@ export class AudioManager {
   constructor({ bus, config }: { bus: EventBus; config: AudioConfig }) {
     this.bus = bus
     this.config = config
-    this.masterVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(MASTER_VOLUME_KEY) ?? '1')))
-    this.musicVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(MUSIC_VOLUME_KEY) ?? '0.8')))
-    this.sfxVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(SFX_VOLUME_KEY) ?? '1')))
+    this.masterVolume = clampVolume(localStorage.getItem(MASTER_VOLUME_KEY), 1)
+    this.musicVolume = clampVolume(localStorage.getItem(MUSIC_VOLUME_KEY), 0.8)
+    this.sfxVolume = clampVolume(localStorage.getItem(SFX_VOLUME_KEY), 1)
     this.muted = localStorage.getItem(MUTE_KEY) === 'true'
   }
 
