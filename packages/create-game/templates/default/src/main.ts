@@ -8,7 +8,7 @@ const bus = new EventBus()
 const audio = new AudioManager({ bus, config: audioConfig })
 const save = new SaveSystem<GameState>({ version: 1, bus })
 const scenes = new SceneManager({ bus, scenes: {} })
-const loop = new GameLoop({ mode: 'turnbased' })
+const loop = new GameLoop({ mode: '{{mode}}' })
 
 scenes.register('menu', class extends MenuScene { constructor() { super(bus) } })
 scenes.register('game', GameScene)
