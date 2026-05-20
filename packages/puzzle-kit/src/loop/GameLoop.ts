@@ -49,7 +49,7 @@ export class GameLoop {
       this._accumulator -= this._FIXED_DT
     }
 
-    this.onRender?.(this._accumulator / this._FIXED_DT)
+    this.onRender?.(this._FIXED_DT > 0 ? this._accumulator / this._FIXED_DT : 0)
     this._rafId = requestAnimationFrame(this._tick)
   }
 
