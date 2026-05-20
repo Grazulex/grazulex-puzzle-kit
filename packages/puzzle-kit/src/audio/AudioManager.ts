@@ -22,9 +22,9 @@ export class AudioManager {
   constructor({ bus, config }: { bus: EventBus; config: AudioConfig }) {
     this.bus = bus
     this.config = config
-    this.masterVolume = parseFloat(localStorage.getItem(MASTER_VOLUME_KEY) ?? '1')
-    this.musicVolume = parseFloat(localStorage.getItem(MUSIC_VOLUME_KEY) ?? '0.8')
-    this.sfxVolume = parseFloat(localStorage.getItem(SFX_VOLUME_KEY) ?? '1')
+    this.masterVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(MASTER_VOLUME_KEY) ?? '1')))
+    this.musicVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(MUSIC_VOLUME_KEY) ?? '0.8')))
+    this.sfxVolume = Math.max(0, Math.min(1, parseFloat(localStorage.getItem(SFX_VOLUME_KEY) ?? '1')))
     this.muted = localStorage.getItem(MUTE_KEY) === 'true'
   }
 

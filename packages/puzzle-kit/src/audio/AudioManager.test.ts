@@ -109,4 +109,25 @@ describe('AudioManager', () => {
     const audio = new AudioManager({ bus: new EventBus(), config })
     expect(() => audio.playSFX('unknown')).toThrow('Sound "unknown" not found')
   })
+
+  it('isMuted() true donne effectiveVolume = 0 (playSFX avec volume 0)', async () => {
+    const { Howl } = await import('howler')
+    const { AudioManager } = await import('./AudioManager')
+    const audio = new AudioManager({ bus: new EventBus(), config })
+    audio.toggleMute()
+    audio.playSFX('click')
+    const howlArgs = (Howl as any).mock.calls[0][0]
+    expect(howlArgs.volume).toBe(0)
+  })
+
+  it('playSFX() utilise master × sfxVolume comme volume effectif', async () => {
+    const { Howl } = await import('howler')
+    const { AudioManager } = await import('./AudioManager')
+    const audio = new AudioManager({ bus: new EventBus(), config })
+    audio.setMasterVolume(0.5)
+    audio.setSFXVolume(0.8)
+    audio.playSFX('click')
+    const howlArgs = (Howl as any).mock.calls[0][0]
+    expect(howlArgs.volume).toBeCloseTo(0.4) // 0.5 × 0.8
+  })
 })
