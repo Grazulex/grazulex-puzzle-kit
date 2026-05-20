@@ -5,18 +5,23 @@
   "bin": {
     "create-grazulex-game": "./dist/index.js"
   },
-  "files": ["dist", "templates"],
+  "files": [
+    "dist",
+    "templates"
+  ],
   "devDependencies": {
-    "typescript": "^5.7.0",
-    "tsup": "^8.3.0"
+    "@types/node": "^25.9.1",
+    "@types/prompts": "^2.4.9",
+    "tsup": "^8.3.0",
+    "typescript": "^5.7.0"
   },
   "dependencies": {
-    "prompts": "^2.4.2",
-    "picocolors": "^1.1.0"
+    "picocolors": "^1.1.0",
+    "prompts": "^2.4.2"
   },
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean",
-    "dev": "tsup src/index.ts --format esm --watch",
+    "build": "tsup src/index.ts --format esm --target es2022 --dts --clean",
+    "dev": "tsup src/index.ts --format esm --target es2022 --watch",
     "test": "echo 'no tests'"
   }
 }
