@@ -102,6 +102,32 @@ bus.emit('scene:goto', 'game')
 bus.on('scene:goto', (name: string) => scenes.goto(name))
 ```
 
+#### Transitions animées
+
+Passe un `container` HTML au constructeur pour activer les transitions. Sans `container`, tout reste instantané (rétrocompat totale).
+
+```ts
+import { SceneManager } from '@grazulex/puzzle-kit'
+import type { TransitionOptions } from '@grazulex/puzzle-kit'
+
+const scenes = new SceneManager({
+  bus,
+  scenes: {},
+  container: document.getElementById('app')!,
+})
+
+// Fondu enchaîné en 400ms
+scenes.goto('game', { level: 2 }, { transition: 'fade', duration: 400 })
+
+// Instantané explicite (même avec container)
+scenes.goto('menu', {}, { transition: 'none' })
+
+// Sans 3e argument → instantané (comportement v0.2.0 identique)
+scenes.back()
+```
+
+La transition `'fade'` superpose un overlay noir : fondu vers opaque (200ms), changement de scène, fondu vers transparent (200ms), puis `scene:changed`. Un appel `goto()` rapide pendant un fondu annule automatiquement le fondu en cours.
+
 ---
 
 ### SaveSystem
@@ -180,6 +206,44 @@ audio.isMuted()              // → true
 
 ---
 
+### InputManager
+
+Unifie clavier, souris, touch et drag & drop derrière un système d'**actions nommées** émises sur l'EventBus.
+
+```ts
+import { InputManager } from '@grazulex/puzzle-kit'
+
+const input = new InputManager({ bus })
+
+// Lier des actions à des touches (plusieurs touches par action)
+input.bind('move-left',  ['ArrowLeft', 'a'])
+input.bind('move-right', ['ArrowRight', 'd'])
+input.bind('move-up',    ['ArrowUp', 'w'])
+input.bind('move-down',  ['ArrowDown', 's'])
+input.bind('confirm',    ['Enter', ' '])
+input.bind('cancel',     ['Escape'])
+
+// Écouter les événements dans une scène
+bus.on('input:action',     ({ name }) => console.log('action:', name))
+bus.on('input:click',      ({ x, y }) => console.log('click:', x, y))
+bus.on('input:drag-start', ({ x, y }) => console.log('drag start:', x, y))
+bus.on('input:drag-end',   ({ x, y }) => console.log('drag end:', x, y))
+
+// Nettoyage — appeler dans onExit() de la scène
+input.destroy()
+```
+
+| Événement | Payload | Déclencheur |
+|-----------|---------|-------------|
+| `input:action` | `{ name: string }` | Touche clavier ou swipe mobile correspondant à une action |
+| `input:click` | `{ x, y }` | Clic souris ou tap mobile (< 10px de déplacement) |
+| `input:drag-start` | `{ x, y }` | Début d'un drag (> 10px) |
+| `input:drag-end` | `{ x, y }` | Fin d'un drag |
+
+Les swipes mobiles sont automatiquement mappés aux touches directionnelles : swipe gauche → `ArrowLeft`, etc.
+
+---
+
 ### GameLoop
 
 Deux modes au choix.
@@ -229,8 +293,8 @@ loop.stop()
 ## Exemple complet — main.ts
 
 ```ts
-import { EventBus, AudioManager, SaveSystem, SceneManager, GameLoop } from '@grazulex/puzzle-kit'
-import type { AudioConfig } from '@grazulex/puzzle-kit'
+import { EventBus, AudioManager, SaveSystem, SceneManager, GameLoop, InputManager } from '@grazulex/puzzle-kit'
+import type { AudioConfig, TransitionOptions } from '@grazulex/puzzle-kit'
 import { MenuScene } from './scenes/MenuScene'
 import { GameScene } from './scenes/GameScene'
 
@@ -271,11 +335,12 @@ loop.start()
 ## Imports par module (tree-shaking)
 
 ```ts
-import { EventBus }    from '@grazulex/puzzle-kit/event-bus'
-import { AudioManager } from '@grazulex/puzzle-kit/audio'
-import { SaveSystem }   from '@grazulex/puzzle-kit/save'
-import { SceneManager } from '@grazulex/puzzle-kit/scene'
-import { GameLoop }     from '@grazulex/puzzle-kit/loop'
+import { EventBus }     from '@grazulex/puzzle-kit/event-bus'
+import { AudioManager }  from '@grazulex/puzzle-kit/audio'
+import { SaveSystem }    from '@grazulex/puzzle-kit/save'
+import { SceneManager }  from '@grazulex/puzzle-kit/scene'
+import { GameLoop }      from '@grazulex/puzzle-kit/loop'
+import { InputManager }  from '@grazulex/puzzle-kit/input'
 ```
 
 ---
@@ -289,9 +354,9 @@ import { GameLoop }     from '@grazulex/puzzle-kit/loop'
 
 # 2. Commit + tag
 git add packages/puzzle-kit/package.json packages/create-game/package.json
-git commit -m "chore: bump to v0.2.0"
-git tag -a v0.2.0 -m "v0.2.0"
-git push && git push origin v0.2.0
+git commit -m "chore: bump to v0.3.0"
+git tag -a v0.3.0 -m "v0.3.0"
+git push && git push origin v0.3.0
 
 # GitHub Actions publie automatiquement sur npm
 ```
