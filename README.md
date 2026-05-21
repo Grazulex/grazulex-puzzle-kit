@@ -244,6 +244,37 @@ Les swipes mobiles sont automatiquement mappés aux touches directionnelles : sw
 
 ---
 
+### DebugManager
+
+Observateur passif du bus — logge les événements par channel sans modifier le code existant.
+
+```ts
+import { DebugManager } from '@grazulex/puzzle-kit'
+
+const debug = new DebugManager({
+  bus,
+  enabled: true,
+  channels: ['scene', 'input', 'save'],
+  loggers: {
+    // optionnel — logger custom pour ce channel
+    scene: (event, payload) => console.group(`[scene] ${event}`, payload),
+  },
+})
+
+// Nettoyage
+debug.destroy()
+```
+
+Format du logger par défaut :
+```
+[debug][scene] scene:changed "game"  +42ms
+[debug][input] input:action {"name":"move-left"}  +3ms
+```
+
+Si `enabled: false` : aucun abonnement créé, overhead zéro.
+
+---
+
 ### GameLoop
 
 Deux modes au choix.
@@ -341,6 +372,7 @@ import { SaveSystem }    from '@grazulex/puzzle-kit/save'
 import { SceneManager }  from '@grazulex/puzzle-kit/scene'
 import { GameLoop }      from '@grazulex/puzzle-kit/loop'
 import { InputManager }  from '@grazulex/puzzle-kit/input'
+import { DebugManager }  from '@grazulex/puzzle-kit/debug'
 ```
 
 ---
