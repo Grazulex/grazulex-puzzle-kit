@@ -1,5 +1,7 @@
 import type { EventBus } from '../event-bus/EventBus'
 
+const DRAG_THRESHOLD = 10
+
 export class InputManager {
   private bus: EventBus
   private bindings = new Map<string, string>()
@@ -50,7 +52,7 @@ export class InputManager {
     if (!this._mouseStart || this._dragging) return
     const dx = e.clientX - this._mouseStart.x
     const dy = e.clientY - this._mouseStart.y
-    if (Math.sqrt(dx * dx + dy * dy) > 10) {
+    if (Math.sqrt(dx * dx + dy * dy) > DRAG_THRESHOLD) {
       this._dragging = true
       this.bus.emit('input:drag-start', { x: this._mouseStart.x, y: this._mouseStart.y })
     }
@@ -79,7 +81,7 @@ export class InputManager {
     const dx = touch.clientX - this._touchStart.x
     const dy = touch.clientY - this._touchStart.y
     const dist = Math.sqrt(dx * dx + dy * dy)
-    if (dist < 10) {
+    if (dist < DRAG_THRESHOLD) {
       this.bus.emit('input:click', { x: touch.clientX, y: touch.clientY })
     } else {
       const absX = Math.abs(dx)
