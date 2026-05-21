@@ -73,3 +73,50 @@ describe('InputManager — keyboard', () => {
     expect(event.defaultPrevented).toBe(true)
   })
 })
+
+describe('InputManager — mouse', () => {
+  let input: InputManager
+
+  afterEach(() => input?.destroy())
+
+  it('emits input:click on mousedown + mouseup without movement', () => {
+    const bus = new EventBus<InputEvents>()
+    const clicks: Array<{ x: number; y: number }> = []
+    bus.on('input:click', (data) => clicks.push(data))
+    input = new InputManager({ bus })
+
+    document.dispatchEvent(new MouseEvent('mousedown', { clientX: 10, clientY: 20, bubbles: true }))
+    document.dispatchEvent(new MouseEvent('mouseup', { clientX: 10, clientY: 20, bubbles: true }))
+
+    expect(clicks).toEqual([{ x: 10, y: 20 }])
+  })
+
+  it('emits input:drag-start then input:drag-end when mouse moves > 10px', () => {
+    const bus = new EventBus<InputEvents>()
+    const dragStarts: Array<{ x: number; y: number }> = []
+    const dragEnds: Array<{ x: number; y: number }> = []
+    bus.on('input:drag-start', (data) => dragStarts.push(data))
+    bus.on('input:drag-end', (data) => dragEnds.push(data))
+    input = new InputManager({ bus })
+
+    document.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, bubbles: true }))
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 15, clientY: 0, bubbles: true }))
+    document.dispatchEvent(new MouseEvent('mouseup', { clientX: 15, clientY: 0, bubbles: true }))
+
+    expect(dragStarts).toEqual([{ x: 0, y: 0 }])
+    expect(dragEnds).toEqual([{ x: 15, y: 0 }])
+  })
+
+  it('does not emit drag-start for movement <= 10px', () => {
+    const bus = new EventBus<InputEvents>()
+    const handler = vi.fn()
+    bus.on('input:drag-start', handler)
+    input = new InputManager({ bus })
+
+    document.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, bubbles: true }))
+    document.dispatchEvent(new MouseEvent('mousemove', { clientX: 5, clientY: 0, bubbles: true }))
+    document.dispatchEvent(new MouseEvent('mouseup', { clientX: 5, clientY: 0, bubbles: true }))
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+})

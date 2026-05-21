@@ -41,9 +41,31 @@ export class InputManager {
     this.bus.emit('input:action', { name: action })
   }
 
-  private _onMouseDown = (_e: MouseEvent): void => {}
-  private _onMouseMove = (_e: MouseEvent): void => {}
-  private _onMouseUp = (_e: MouseEvent): void => {}
+  private _onMouseDown = (e: MouseEvent): void => {
+    this._mouseStart = { x: e.clientX, y: e.clientY }
+    this._dragging = false
+  }
+
+  private _onMouseMove = (e: MouseEvent): void => {
+    if (!this._mouseStart || this._dragging) return
+    const dx = e.clientX - this._mouseStart.x
+    const dy = e.clientY - this._mouseStart.y
+    if (Math.sqrt(dx * dx + dy * dy) > 10) {
+      this._dragging = true
+      this.bus.emit('input:drag-start', { x: this._mouseStart.x, y: this._mouseStart.y })
+    }
+  }
+
+  private _onMouseUp = (e: MouseEvent): void => {
+    if (!this._mouseStart) return
+    if (this._dragging) {
+      this.bus.emit('input:drag-end', { x: e.clientX, y: e.clientY })
+    } else {
+      this.bus.emit('input:click', { x: e.clientX, y: e.clientY })
+    }
+    this._mouseStart = null
+    this._dragging = false
+  }
   private _onTouchStart = (_e: Event): void => {}
   private _onTouchEnd = (_e: Event): void => {}
 }
