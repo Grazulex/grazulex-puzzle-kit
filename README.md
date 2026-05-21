@@ -162,15 +162,6 @@ interface GameState {
 
 const save = new SaveSystem<GameState>({ version: 1, bus })
 
-Plusieurs slots de sauvegarde (clé localStorage configurable) :
-
-```ts
-const slot1 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-1' })
-const slot2 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-2' })
-```
-
-Sans `key`, la clé par défaut est `'grazulex-save'`.
-
 // Sauvegarder
 save.snapshot({ score: 100, level: 3 })
 
@@ -186,6 +177,15 @@ save.onVersionMismatch = (oldVersion, currentVersion, data) => {
   return { score: (data as any).points ?? 0, level: 1 }
 }
 ```
+
+Plusieurs slots de sauvegarde (clé localStorage configurable) :
+
+```ts
+const slot1 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-1' })
+const slot2 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-2' })
+```
+
+Sans `key`, la clé par défaut est `'grazulex-save'`.
 
 Émet `'save:restored'` et `'save:cleared'` sur le bus.
 
