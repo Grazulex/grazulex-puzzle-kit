@@ -41,6 +41,15 @@ bus.emit('score:updated', 42)
 bus.off('score:updated', handler)
 ```
 
+Écouter un événement une seule fois :
+
+```ts
+bus.once('game:over', () => {
+  // appelé uniquement lors du premier 'game:over', jamais après
+  showGameOverScreen()
+})
+```
+
 Avec un map d'événements, les typos sont détectées à la compilation :
 
 ```ts
@@ -90,6 +99,15 @@ scenes.register('game', GameScene)
 scenes.goto('game', { level: 2 })   // passe des paramètres à onEnter
 scenes.back()                        // revenir à la scène précédente
 scenes.current()                     // instance de la scène active
+```
+
+`replace()` remplace la scène courante sans l'empiler dans l'historique — `back()` revient à la scène d'avant le remplacement :
+
+```ts
+// stack avant : [menu, level-select]
+scenes.replace('game', { level: 1 })
+// stack après : [menu, game]
+// back() reviendra à menu, pas à level-select
 ```
 
 Les scènes communiquent entre elles via l'EventBus pour éviter les dépendances circulaires :
@@ -143,6 +161,15 @@ interface GameState {
 }
 
 const save = new SaveSystem<GameState>({ version: 1, bus })
+
+Plusieurs slots de sauvegarde (clé localStorage configurable) :
+
+```ts
+const slot1 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-1' })
+const slot2 = new SaveSystem<GameState>({ version: 1, bus, key: 'save-player-2' })
+```
+
+Sans `key`, la clé par défaut est `'grazulex-save'`.
 
 // Sauvegarder
 save.snapshot({ score: 100, level: 3 })
