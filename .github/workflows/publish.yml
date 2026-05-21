@@ -26,13 +26,27 @@ jobs:
       - run: pnpm test
 
       - name: Publish @grazulex/puzzle-kit
-        run: pnpm publish --no-git-checks --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          if npm view "$NAME@$VERSION" version &>/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            pnpm publish --no-git-checks --access public
+          fi
         working-directory: packages/puzzle-kit
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Publish create-grazulex-game
-        run: pnpm publish --no-git-checks --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME=$(node -p "require('./package.json').name")
+          if npm view "$NAME@$VERSION" version &>/dev/null 2>&1; then
+            echo "$NAME@$VERSION already published, skipping"
+          else
+            pnpm publish --no-git-checks --access public
+          fi
         working-directory: packages/create-game
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
