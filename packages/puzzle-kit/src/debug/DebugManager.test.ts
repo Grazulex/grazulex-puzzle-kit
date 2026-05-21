@@ -77,6 +77,36 @@ describe('DebugManager', () => {
       expect(msg).toMatch(/\[debug\]\[ping\] ping/)
       debug.destroy()
     })
+
+    it('premier event loggue +0ms (lazy init)', () => {
+      const bus = new EventBus()
+      const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const debug = new DebugManager({ bus, enabled: true, channels: ['scene'] })
+      bus.emit('scene:changed', 'game')
+      const msg = spy.mock.calls[0][0] as string
+      expect(msg).toMatch(/\+0ms$/)
+      debug.destroy()
+    })
+
+    it('delta correct après passage par un logger custom', () => {
+      vi.useFakeTimers()
+      const bus = new EventBus()
+      const customLogger = vi.fn()
+      const spy = vi.spyOn(console, 'log').mockImplementation(() => {})
+      const debug = new DebugManager({
+        bus,
+        enabled: true,
+        channels: ['scene', 'input'],
+        loggers: { input: customLogger },
+      })
+      bus.emit('input:action', { name: 'move-left' })
+      vi.advanceTimersByTime(100)
+      bus.emit('scene:changed', 'game')
+      const msg = spy.mock.calls[0][0] as string
+      expect(msg).toMatch(/\+100ms$/)
+      debug.destroy()
+      vi.useRealTimers()
+    })
   })
 
   describe('enabled: false', () => {

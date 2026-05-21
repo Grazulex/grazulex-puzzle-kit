@@ -15,13 +15,13 @@ export class DebugManager {
 
   constructor({ bus, enabled, channels, loggers }: DebugManagerOptions) {
     if (!enabled) return
-    let _lastTime = Date.now()
+    let _lastTime: number | undefined
     this._bus = bus
     this._handler = (event: string, payload: unknown) => {
       const channel = event.includes(':') ? event.split(':')[0] : event
       if (!channels.includes(channel)) return
       const now = Date.now()
-      const delta = now - _lastTime
+      const delta = _lastTime !== undefined ? now - _lastTime : 0
       _lastTime = now
       const custom = loggers?.[channel]
       if (custom) {
