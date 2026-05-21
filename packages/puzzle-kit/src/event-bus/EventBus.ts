@@ -17,6 +17,14 @@ export class EventBus<T extends EventMap = EventMap> {
     this.listeners.get(event)?.delete(handler as Handler)
   }
 
+  once<K extends keyof T & string>(event: K, handler: (data: T[K]) => void): void {
+    const wrapper = (data: T[K]) => {
+      handler(data)
+      this.off(event, wrapper)
+    }
+    this.on(event, wrapper)
+  }
+
   emit<K extends keyof T & string>(event: K, data?: T[K]): void {
     this.listeners.get(event)?.forEach(h => h(data))
     this._anyHandlers.forEach(h => h(event, data))

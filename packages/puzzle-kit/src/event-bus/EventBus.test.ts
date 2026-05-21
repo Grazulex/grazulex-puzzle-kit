@@ -122,4 +122,45 @@ describe('EventBus', () => {
     expect(h1).toHaveBeenCalledWith('test', 'hello')
     expect(h2).toHaveBeenCalledWith('test', 'hello')
   })
+
+  it('once() appelle le handler exactement une fois', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.once('test', handler)
+    bus.emit('test', 1)
+    bus.emit('test', 2)
+    bus.emit('test', 3)
+    expect(handler).toHaveBeenCalledOnce()
+    expect(handler).toHaveBeenCalledWith(1)
+  })
+
+  it('once() se retire automatiquement après le premier appel', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.once('test', handler)
+    bus.emit('test', 42)
+    bus.emit('test', 43)
+    expect(handler).toHaveBeenCalledTimes(1)
+  })
+
+  it('once() n\'interfère pas avec on() sur le même événement', () => {
+    const bus = new EventBus()
+    const onceHandler = vi.fn()
+    const persistentHandler = vi.fn()
+    bus.once('test', onceHandler)
+    bus.on('test', persistentHandler)
+    bus.emit('test', 1)
+    bus.emit('test', 2)
+    expect(onceHandler).toHaveBeenCalledOnce()
+    expect(persistentHandler).toHaveBeenCalledTimes(2)
+  })
+
+  it('once() typé — handler reçoit le bon type', () => {
+    type Events = { 'score:updated': number }
+    const bus = new EventBus<Events>()
+    const handler = vi.fn()
+    bus.once('score:updated', handler)
+    bus.emit('score:updated', 99)
+    expect(handler).toHaveBeenCalledWith(99)
+  })
 })
