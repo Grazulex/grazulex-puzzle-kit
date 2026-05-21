@@ -26,7 +26,7 @@ describe('InputManager — keyboard', () => {
     expect(received).toEqual(['move-left'])
   })
 
-  it('emits input:action for each bound key', () => {
+  it('emits input:action for alternate bound key', () => {
     const bus = new EventBus<InputEvents>()
     const received: string[] = []
     bus.on('input:action', (data) => received.push(data.name))
@@ -60,5 +60,16 @@ describe('InputManager — keyboard', () => {
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
 
     expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('calls preventDefault for arrow keys', () => {
+    const bus = new EventBus<InputEvents>()
+    input = new InputManager({ bus })
+    input.bind('move-left', ['ArrowLeft'])
+
+    const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true })
+    document.dispatchEvent(event)
+
+    expect(event.defaultPrevented).toBe(true)
   })
 })
