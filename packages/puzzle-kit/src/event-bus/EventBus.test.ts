@@ -67,4 +67,40 @@ describe('EventBus', () => {
     expect(ha).toHaveBeenCalledWith('hello')
     expect(hb).toHaveBeenCalledWith(42)
   })
+
+  it('onAny reçoit tous les events émis', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.onAny(handler)
+    bus.emit('test', 42)
+    expect(handler).toHaveBeenCalledWith('test', 42)
+  })
+
+  it('onAny ne reçoit pas les events émis avant inscription', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.emit('test', 42)
+    bus.onAny(handler)
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('offAny retire le handler — plus appelé après', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.onAny(handler)
+    bus.offAny(handler)
+    bus.emit('test', 42)
+    expect(handler).not.toHaveBeenCalled()
+  })
+
+  it('onAny reçoit les events de tous les types', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.onAny(handler)
+    bus.emit('scene:changed', 'game')
+    bus.emit('input:action', { name: 'move-left' })
+    expect(handler).toHaveBeenCalledTimes(2)
+    expect(handler).toHaveBeenNthCalledWith(1, 'scene:changed', 'game')
+    expect(handler).toHaveBeenNthCalledWith(2, 'input:action', { name: 'move-left' })
+  })
 })
