@@ -20,13 +20,13 @@ export class DebugManager {
     this._handler = (event: string, payload: unknown) => {
       const channel = event.includes(':') ? event.split(':')[0] : event
       if (!channels.includes(channel)) return
+      const now = Date.now()
+      const delta = now - _lastTime
+      _lastTime = now
       const custom = loggers?.[channel]
       if (custom) {
         custom(event, payload)
       } else {
-        const now = Date.now()
-        const delta = now - _lastTime
-        _lastTime = now
         console.log(`[debug][${channel}] ${event} ${JSON.stringify(payload)}  +${delta}ms`)
       }
     }
