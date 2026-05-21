@@ -9,6 +9,12 @@ type InputEvents = {
   'input:drag-end': { x: number; y: number }
 }
 
+function makeTouchEvent(type: string, x: number, y: number): Event {
+  return Object.assign(new Event(type, { bubbles: true }), {
+    changedTouches: [{ clientX: x, clientY: y }],
+  })
+}
+
 describe('InputManager — keyboard', () => {
   let input: InputManager
 
@@ -116,6 +122,65 @@ describe('InputManager — mouse', () => {
     document.dispatchEvent(new MouseEvent('mousedown', { clientX: 0, clientY: 0, bubbles: true }))
     document.dispatchEvent(new MouseEvent('mousemove', { clientX: 5, clientY: 0, bubbles: true }))
     document.dispatchEvent(new MouseEvent('mouseup', { clientX: 5, clientY: 0, bubbles: true }))
+
+    expect(handler).not.toHaveBeenCalled()
+  })
+})
+
+describe('InputManager — touch', () => {
+  let input: InputManager
+
+  afterEach(() => input?.destroy())
+
+  it('emits input:click on tap (distance < 10px)', () => {
+    const bus = new EventBus<InputEvents>()
+    const clicks: Array<{ x: number; y: number }> = []
+    bus.on('input:click', (data) => clicks.push(data))
+    input = new InputManager({ bus })
+
+    document.dispatchEvent(makeTouchEvent('touchstart', 50, 50))
+    document.dispatchEvent(makeTouchEvent('touchend', 52, 51))
+
+    expect(clicks).toEqual([{ x: 52, y: 51 }])
+  })
+
+  it('emits input:action for swipe left (bound to ArrowLeft)', () => {
+    const bus = new EventBus<InputEvents>()
+    const received: string[] = []
+    bus.on('input:action', (data) => received.push(data.name))
+    input = new InputManager({ bus })
+    input.bind('move-left', ['ArrowLeft'])
+
+    document.dispatchEvent(makeTouchEvent('touchstart', 100, 50))
+    document.dispatchEvent(makeTouchEvent('touchend', 70, 50))
+
+    expect(received).toEqual(['move-left'])
+  })
+
+  it('emits input:drag-start and input:drag-end on swipe', () => {
+    const bus = new EventBus<InputEvents>()
+    const dragStarts: Array<{ x: number; y: number }> = []
+    const dragEnds: Array<{ x: number; y: number }> = []
+    bus.on('input:drag-start', (data) => dragStarts.push(data))
+    bus.on('input:drag-end', (data) => dragEnds.push(data))
+    input = new InputManager({ bus })
+
+    document.dispatchEvent(makeTouchEvent('touchstart', 100, 50))
+    document.dispatchEvent(makeTouchEvent('touchend', 70, 50))
+
+    expect(dragStarts).toEqual([{ x: 100, y: 50 }])
+    expect(dragEnds).toEqual([{ x: 70, y: 50 }])
+  })
+
+  it('emits nothing for swipe direction with no binding', () => {
+    const bus = new EventBus<InputEvents>()
+    const handler = vi.fn()
+    bus.on('input:action', handler)
+    input = new InputManager({ bus })
+    // No binding for ArrowLeft
+
+    document.dispatchEvent(makeTouchEvent('touchstart', 100, 50))
+    document.dispatchEvent(makeTouchEvent('touchend', 70, 50))
 
     expect(handler).not.toHaveBeenCalled()
   })

@@ -66,6 +66,34 @@ export class InputManager {
     this._mouseStart = null
     this._dragging = false
   }
-  private _onTouchStart = (_e: Event): void => {}
-  private _onTouchEnd = (_e: Event): void => {}
+  private _onTouchStart = (e: Event): void => {
+    const touch = (e as TouchEvent).changedTouches[0]
+    if (!touch) return
+    this._touchStart = { x: touch.clientX, y: touch.clientY }
+  }
+
+  private _onTouchEnd = (e: Event): void => {
+    if (!this._touchStart) return
+    const touch = (e as TouchEvent).changedTouches[0]
+    if (!touch) return
+    const dx = touch.clientX - this._touchStart.x
+    const dy = touch.clientY - this._touchStart.y
+    const dist = Math.sqrt(dx * dx + dy * dy)
+    if (dist < 10) {
+      this.bus.emit('input:click', { x: touch.clientX, y: touch.clientY })
+    } else {
+      const absX = Math.abs(dx)
+      const absY = Math.abs(dy)
+      const arrowKey = absX >= absY
+        ? (dx < 0 ? 'ArrowLeft' : 'ArrowRight')
+        : (dy < 0 ? 'ArrowUp' : 'ArrowDown')
+      const action = this.bindings.get(arrowKey)
+      if (action) {
+        this.bus.emit('input:action', { name: action })
+      }
+      this.bus.emit('input:drag-start', { x: this._touchStart.x, y: this._touchStart.y })
+      this.bus.emit('input:drag-end', { x: touch.clientX, y: touch.clientY })
+    }
+    this._touchStart = null
+  }
 }
