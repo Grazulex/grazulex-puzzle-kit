@@ -9,7 +9,7 @@ export default defineConfig({
     'scene/index': 'src/scene/SceneManager.ts',
     'loop/index': 'src/loop/GameLoop.ts',
     'input/index': 'src/input/index.ts',
-    'debug/index': 'src/debug/index.ts',
+    'debug/index': 'src/debug/DebugManager.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,
