@@ -40,6 +40,11 @@
       "import": "./dist/input/index.js",
       "require": "./dist/input/index.cjs",
       "types": "./dist/input/index.d.ts"
+    },
+    "./debug": {
+      "import": "./dist/debug/index.js",
+      "require": "./dist/debug/index.cjs",
+      "types": "./dist/debug/index.d.ts"
     }
   },
   "peerDependencies": {
