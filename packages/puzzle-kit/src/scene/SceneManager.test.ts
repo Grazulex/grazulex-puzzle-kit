@@ -277,3 +277,77 @@ describe('SceneManager — fade back() et annulation', () => {
     expect(changed).not.toHaveBeenCalledWith('b')
   })
 })
+
+describe('SceneManager — replace()', () => {
+  it('replace() appelle onExit sur la scène courante', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB } })
+    mgr.goto('a')
+    mgr.replace('b')
+    expect(sceneA.onExit).toHaveBeenCalled()
+  })
+
+  it('replace() appelle onEnter sur la nouvelle scène', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB } })
+    mgr.goto('a')
+    mgr.replace('b', { level: 3 })
+    expect(sceneB.onEnter).toHaveBeenCalledWith({ level: 3 })
+  })
+
+  it('replace() émet scene:changed', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB } })
+    mgr.goto('a')
+    const changed = vi.fn()
+    bus.on('scene:changed', changed)
+    mgr.replace('b')
+    expect(changed).toHaveBeenCalledWith('b')
+  })
+
+  it('back() après replace() revient à la scène d\'avant le remplacement', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const sceneC = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const SceneC = class { onEnter = sceneC.onEnter; onExit = sceneC.onExit; update = sceneC.update; render = sceneC.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB, c: SceneC } })
+    mgr.goto('a')   // stack: [a]
+    mgr.goto('b')   // stack: [a, b]
+    mgr.replace('c') // stack: [a, c]
+    mgr.back()       // stack: [a]
+    expect(sceneA.onEnter).toHaveBeenCalledTimes(2) // initial + back
+    expect(sceneB.onEnter).toHaveBeenCalledTimes(1) // initial goto only
+  })
+
+  it('replace() lance une erreur si la scène n\'est pas enregistrée', () => {
+    const mgr = new SceneManager({ bus: new EventBus(), scenes: {} })
+    expect(() => mgr.replace('unknown')).toThrow('Scene "unknown" not registered')
+  })
+
+  it('replace() sur stack vide se comporte comme goto()', () => {
+    const bus = new EventBus()
+    const scene = makeScene()
+    const SceneA = class { onEnter = scene.onEnter; onExit = scene.onExit; update = scene.update; render = scene.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA } })
+    const changed = vi.fn()
+    bus.on('scene:changed', changed)
+    mgr.replace('a')
+    expect(scene.onEnter).toHaveBeenCalled()
+    expect(changed).toHaveBeenCalledWith('a')
+  })
+})

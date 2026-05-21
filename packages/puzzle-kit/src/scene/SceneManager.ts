@@ -70,6 +70,25 @@ export class SceneManager {
     }
   }
 
+  replace(name: string, params?: Record<string, unknown>, transition?: TransitionOptions): void {
+    if (!this.registry[name]) throw new Error(`Scene "${name}" not registered`)
+    if (transition?.transition === 'fade' && this._overlay) {
+      this._runFade(transition.duration, () => {
+        const current = this.stack[this.stack.length - 1]
+        current?.instance.onExit()
+        const instance = new this.registry[name]()
+        if (this.stack.length > 0) {
+          this.stack[this.stack.length - 1] = { name, instance }
+        } else {
+          this.stack.push({ name, instance })
+        }
+        instance.onEnter(params)
+      }, name)
+    } else {
+      this._doReplace(name, params)
+    }
+  }
+
   current(): Scene | null {
     return this.stack[this.stack.length - 1]?.instance ?? null
   }
@@ -88,6 +107,19 @@ export class SceneManager {
     const prev = this.stack[this.stack.length - 1]
     prev.instance.onEnter()
     this.bus.emit('scene:changed', prev.name)
+  }
+
+  private _doReplace(name: string, params?: Record<string, unknown>): void {
+    const current = this.stack[this.stack.length - 1]
+    current?.instance.onExit()
+    const instance = new this.registry[name]()
+    if (this.stack.length > 0) {
+      this.stack[this.stack.length - 1] = { name, instance }
+    } else {
+      this.stack.push({ name, instance })
+    }
+    instance.onEnter(params)
+    this.bus.emit('scene:changed', name)
   }
 
   private _runFade(duration: number, onSwitch: () => void, emitName: string): void {
