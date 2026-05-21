@@ -103,4 +103,23 @@ describe('EventBus', () => {
     expect(handler).toHaveBeenNthCalledWith(1, 'scene:changed', 'game')
     expect(handler).toHaveBeenNthCalledWith(2, 'input:action', { name: 'move-left' })
   })
+
+  it('onAny reçoit undefined quand emit est appelé sans data', () => {
+    const bus = new EventBus()
+    const handler = vi.fn()
+    bus.onAny(handler)
+    bus.emit('noop')
+    expect(handler).toHaveBeenCalledWith('noop', undefined)
+  })
+
+  it('plusieurs handlers onAny sont tous appelés', () => {
+    const bus = new EventBus()
+    const h1 = vi.fn()
+    const h2 = vi.fn()
+    bus.onAny(h1)
+    bus.onAny(h2)
+    bus.emit('test', 'hello')
+    expect(h1).toHaveBeenCalledWith('test', 'hello')
+    expect(h2).toHaveBeenCalledWith('test', 'hello')
+  })
 })
