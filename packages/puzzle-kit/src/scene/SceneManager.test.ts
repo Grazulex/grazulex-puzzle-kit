@@ -202,3 +202,78 @@ describe('SceneManager — fade goto()', () => {
     expect(overlay.style.pointerEvents).toBe('none')
   })
 })
+
+describe('SceneManager — fade back() et annulation', () => {
+  let container: HTMLDivElement
+
+  beforeEach(() => {
+    vi.useFakeTimers()
+    container = document.createElement('div')
+    document.body.appendChild(container)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    document.body.removeChild(container)
+  })
+
+  it('back() avec fade appelle onEnter de la scène précédente après 200ms', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB }, container })
+    mgr.goto('a')
+    mgr.goto('b')
+
+    mgr.back({ transition: 'fade', duration: 400 })
+
+    expect(sceneA.onEnter).toHaveBeenCalledTimes(1)
+    vi.advanceTimersByTime(200)
+    expect(sceneA.onEnter).toHaveBeenCalledTimes(2)
+  })
+
+  it('back() avec fade émet scene:changed après 400ms', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB }, container })
+    mgr.goto('a')
+    mgr.goto('b')
+    const changed = vi.fn()
+    bus.on('scene:changed', changed)
+
+    mgr.back({ transition: 'fade', duration: 400 })
+    vi.advanceTimersByTime(400)
+
+    expect(changed).toHaveBeenCalledWith('a')
+  })
+
+  it('double goto rapide: seule la 2e transition se complète', () => {
+    const bus = new EventBus()
+    const sceneA = makeScene()
+    const sceneB = makeScene()
+    const sceneC = makeScene()
+    const SceneA = class { onEnter = sceneA.onEnter; onExit = sceneA.onExit; update = sceneA.update; render = sceneA.render }
+    const SceneB = class { onEnter = sceneB.onEnter; onExit = sceneB.onExit; update = sceneB.update; render = sceneB.render }
+    const SceneC = class { onEnter = sceneC.onEnter; onExit = sceneC.onExit; update = sceneC.update; render = sceneC.render }
+    const mgr = new SceneManager({ bus, scenes: { a: SceneA, b: SceneB, c: SceneC }, container })
+    mgr.goto('a')
+    const changed = vi.fn()
+    bus.on('scene:changed', changed)
+
+    mgr.goto('b', {}, { transition: 'fade', duration: 400 })
+    mgr.goto('c', {}, { transition: 'fade', duration: 400 })
+
+    vi.advanceTimersByTime(200)
+    expect(sceneB.onEnter).not.toHaveBeenCalled()
+    expect(sceneC.onEnter).toHaveBeenCalled()
+
+    vi.advanceTimersByTime(200)
+    expect(changed).toHaveBeenLastCalledWith('c')
+    expect(changed).not.toHaveBeenCalledWith('b')
+  })
+})

@@ -56,9 +56,18 @@ export class SceneManager {
     }
   }
 
-  back(_transition?: TransitionOptions): void {
+  back(transition?: TransitionOptions): void {
     if (this.stack.length < 2) return
-    this._doBack()
+    if (transition?.transition === 'fade' && this._overlay) {
+      const prevName = this.stack[this.stack.length - 2].name
+      this._runFade(transition.duration, () => {
+        this.stack[this.stack.length - 1].instance.onExit()
+        this.stack.pop()
+        this.stack[this.stack.length - 1].instance.onEnter()
+      }, prevName)
+    } else {
+      this._doBack()
+    }
   }
 
   current(): Scene | null {
