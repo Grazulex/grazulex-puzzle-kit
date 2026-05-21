@@ -8,6 +8,7 @@ export default defineConfig({
     'save/index': 'src/save/SaveSystem.ts',
     'scene/index': 'src/scene/SceneManager.ts',
     'loop/index': 'src/loop/GameLoop.ts',
+    'input/index': 'src/input/index.ts',
   },
   format: ['esm', 'cjs'],
   dts: true,

@@ -35,6 +35,11 @@
       "import": "./dist/event-bus/index.js",
       "require": "./dist/event-bus/index.cjs",
       "types": "./dist/event-bus/index.d.ts"
+    },
+    "./input": {
+      "import": "./dist/input/index.js",
+      "require": "./dist/input/index.cjs",
+      "types": "./dist/input/index.d.ts"
     }
   },
   "peerDependencies": {
